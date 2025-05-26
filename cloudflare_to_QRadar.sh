@@ -55,4 +55,8 @@ response=$(curl -s -X POST https://api.cloudflare.com/client/v4/graphql \
 -d "$QUERY")
 
 
-echo "$response"|jq -r '.data.viewer.zones[].firewallEventsAdaptive[] | tojson' | while read -r repo; do curl -k -X POST http://YOUR_QRADAR_IP:12469 -H 'Content-Type: application/json' -H "X-Auth-Email: <X-Auth-Email>" -H "X-Auth-Key: <X-Auth-Key>" -d "$repo"; done
+# Send to QRadar
+echo "$response"|jq -r '.data.viewer.zones[].firewallEventsAdaptive[] | tojson' | while read -r repo; do curl -k -X POST http://<YOUR_QRADAR_IP>:12469 -H 'Content-Type: application/json' -H "X-Auth-Email: <X-Auth-Email>" -H "X-Auth-Key: <X-Auth-Key>" -d "$repo"; done
+
+# Send to Arcsight
+echo "$response"|jq -r '.data.viewer.zones[].firewallEventsAdaptive[] | tojson' | while read -r repo; do logger -n <YOUR_ARCSIGHT_IP> -t cloudflare_waf "CEF:0|MyCompany|CloudflareWAF|1.0|1001|Cloudflare WAF event|5|src=<MANDATORY_CEF_ATTACKER_ADDRESS> msg=$repo"; done
